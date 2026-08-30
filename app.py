@@ -1,8 +1,10 @@
 from flask import Flask, jsonify
 from sqlalchemy import create_engine, text
+from flask_cors import CORS
 import time
 
 app = Flask(__name__)
+CORS(app)
 
 # Konek ke service database di dalam Kubernetes
 DB_URL = "mysql+pymysql://root:admin123@jatelindo-db-svc:3306/db_operasional"
