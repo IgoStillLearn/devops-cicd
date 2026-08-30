@@ -21,7 +21,7 @@ HTML_PAGE = """
 <body>
   <div class="glass-card">
     <h1>Jatelindo Monitoring UI</h1>
-    <p>GitOps Automated • Python SQL Edition • v5</p>
+    <p>GitOps Automated • Python SQL Edition • v6.1</p>
     <div class="metric-box" id="metrics">Menunggu koneksi Database...</div>
   </div>
   <script>

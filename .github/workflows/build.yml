@@ -16,7 +16,7 @@ jobs:
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Rakit Kontainer Docker (Nginx)
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/jatelindo-monitoring:v6 .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/jatelindo-monitoring:v6.1 .
           
       - name: Kirim Kontainer ke Gudang Awan
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/jatelindo-monitoring:v6
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/jatelindo-monitoring:v6.1
