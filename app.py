@@ -1,7 +1,10 @@
 from flask import Flask, jsonify
-import random
+from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
+
+# Persiapan string koneksi (Besok kita sesuaikan dengan kredensial asli)
+# ENGINE = create_engine("mysql+pymysql://user:pass@host/db_jatelindo")
 
 HTML_PAGE = """
 <!DOCTYPE html>
@@ -18,14 +21,14 @@ HTML_PAGE = """
 <body>
   <div class="glass-card">
     <h1>Jatelindo Monitoring UI</h1>
-    <p>GitOps Automated • Python API Edition • v4</p>
-    <div class="metric-box" id="metrics">Menunggu data API...</div>
+    <p>GitOps Automated • Python SQL Edition • v5</p>
+    <div class="metric-box" id="metrics">Menunggu koneksi Database...</div>
   </div>
   <script>
     setInterval(() => {
       fetch('/api/metrics').then(r => r.json()).then(data => {
         document.getElementById('metrics').innerHTML = 
-          `Status: <b style="color:#4ade80">${data.status}</b> | Load: <b>${data.server_load}</b> | Users: <b>${data.active_users}</b>`;
+          `Status DB: <b style="color:#facc15">${data.status}</b><br>Timeout Transaksi: <b>${data.timeout_count}</b>`;
       });
     }, 2000);
   </script>
@@ -39,11 +42,13 @@ def home():
 
 @app.route('/api/metrics')
 def metrics():
-    # Ini endpoint JSON dinamis lu
+    # Logika SQL lu bakal dieksekusi di sini besok
+    # with ENGINE.connect() as conn:
+    #     result = conn.execute(text("SELECT count(*) FROM transaksi WHERE status='timeout'"))
+    
     return jsonify({
-        "status": "Healthy",
-        "active_users": random.randint(100, 500),
-        "server_load": f"{random.randint(10, 90)}%"
+        "status": "Pending SQL Connection",
+        "timeout_count": "Menyiapkan Dataset CSV..."
     })
 
 if __name__ == '__main__':
