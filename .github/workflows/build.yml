@@ -6,14 +6,17 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  build-container:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Kode
+      - name: Tarik Kode dari Repo
         uses: actions/checkout@v3
-        
-      - name: Jalankan Pengecekan Sistem
+
+      - name: Rakit Kontainer Docker (Nginx)
         run: |
-          echo "Memulai proses CI/CD..."
-          echo "Sistem operasi siap, memeriksa kode monitoring..."
-          echo "Build sukses! Lanjut ke tahap deployment."
+          echo "Mulai merakit Docker Image..."
+          docker build -t jatelindo-monitoring:v1 .
+          echo "Docker Image berhasil dirakit!"
+          
+      - name: Verifikasi Hasil Rakitan
+        run: docker images
