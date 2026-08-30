@@ -14,4 +14,4 @@ spec:
     spec:
       containers:
       - name: jatelindo-monitoring
-        image: igostilllearn/jatelindo-monitoring:v3
+        image: igostilllearn/jatelindo-monitoring:v4
