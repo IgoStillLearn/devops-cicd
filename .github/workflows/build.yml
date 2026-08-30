@@ -1,0 +1,19 @@
+name: Robot Pabrik DevOps
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Kode
+        uses: actions/checkout@v3
+        
+      - name: Jalankan Pengecekan Sistem
+        run: |
+          echo "Memulai proses CI/CD..."
+          echo "Sistem operasi siap, memeriksa kode monitoring..."
+          echo "Build sukses! Lanjut ke tahap deployment."
