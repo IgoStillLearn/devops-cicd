@@ -1,10 +1,12 @@
 from flask import Flask, jsonify
 from sqlalchemy import create_engine, text
+import time
 
 app = Flask(__name__)
 
-# Persiapan string koneksi (Besok kita sesuaikan dengan kredensial asli)
-# ENGINE = create_engine("mysql+pymysql://user:pass@host/db_jatelindo")
+# Konek ke service database di dalam Kubernetes
+DB_URL = "mysql+pymysql://root:admin123@jatelindo-db-svc:3306/db_operasional"
+engine = create_engine(DB_URL, pool_pre_ping=True)
 
 HTML_PAGE = """
 <!DOCTYPE html>
@@ -21,20 +23,31 @@ HTML_PAGE = """
 <body>
   <div class="glass-card">
     <h1>Jatelindo Monitoring UI</h1>
-    <p>GitOps Automated • Python SQL Edition • v6.1</p>
-    <div class="metric-box" id="metrics">Menunggu koneksi Database...</div>
+    <p>GitOps Automated • Real MySQL Edition • v7</p>
+    <div class="metric-box" id="metrics">Menarik data dari Database...</div>
   </div>
   <script>
     setInterval(() => {
       fetch('/api/metrics').then(r => r.json()).then(data => {
-        document.getElementById('metrics').innerHTML = 
-          `Status DB: <b style="color:#facc15">${data.status}</b><br>Timeout Transaksi: <b>${data.timeout_count}</b>`;
-      });
+        if(data.error) {
+            document.getElementById('metrics').innerHTML = `Status DB: <b style="color:#ef4444">Koneksi Gagal</b><br>Error: ${data.error}`;
+        } else {
+            document.getElementById('metrics').innerHTML = 
+              `Status DB: <b style="color:#4ade80">${data.status}</b><br>Total Timeout: <b style="color:#facc15">${data.timeout_count}</b> transaksi`;
+        }
+      }).catch(e => console.log(e));
     }, 2000);
   </script>
 </body>
 </html>
 """
+
+def init_db():
+    # Bikin tabel dan masukin data dummy jika belum ada
+    with engine.connect() as conn:
+        conn.execute(text("CREATE TABLE IF NOT EXISTS transaksi (id INT AUTO_INCREMENT PRIMARY KEY, status VARCHAR(50))"))
+        conn.execute(text("INSERT INTO transaksi (status) VALUES ('timeout'), ('sukses'), ('timeout')"))
+        conn.commit()
 
 @app.route('/')
 def home():
@@ -42,14 +55,15 @@ def home():
 
 @app.route('/api/metrics')
 def metrics():
-    # Logika SQL lu bakal dieksekusi di sini besok
-    # with ENGINE.connect() as conn:
-    #     result = conn.execute(text("SELECT count(*) FROM transaksi WHERE status='timeout'"))
-    
-    return jsonify({
-        "status": "Pending SQL Connection",
-        "timeout_count": "Menyiapkan Dataset CSV..."
-    })
+    try:
+        init_db()
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT count(*) FROM transaksi WHERE status='timeout'")).scalar()
+        return jsonify({"status": "Connected to MariaDB", "timeout_count": result})
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
+    # Tunggu sebentar saat startup biar DB pod sempat nyala duluan
+    time.sleep(5)
     app.run(host='0.0.0.0', port=80)
