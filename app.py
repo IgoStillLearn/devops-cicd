@@ -11,13 +11,9 @@ CORS(app)
 DB_URL = "mysql+pymysql://root:admin123@jatelindo-db-svc:3306/db_operasional"
 engine = create_engine(DB_URL, pool_pre_ping=True)
 
-def sync_csv_to_db():
-    """Fungsi untuk narik data CSV (simulasi VBA) ke Database"""
-    if not os.path.exists('report.csv'):
-        return
-
+def init_db():
+    """Bikin tabel duluan, terlepas CSV-nya ada atau nggak"""
     with engine.connect() as conn:
-        # Bikin tabel kalau belum ada
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS log_transaksi (
                 trx_id INT PRIMARY KEY, 
@@ -25,8 +21,12 @@ def sync_csv_to_db():
                 waktu VARCHAR(10)
             )
         """))
-        
-        # Baca CSV dan injek ke DB (Abaikan kalau trx_id sudah ada)
+        conn.commit()
+
+def sync_csv_to_db():
+    if not os.path.exists('report.csv'):
+        return
+    with engine.connect() as conn:
         with open('report.csv', 'r') as file:
             csv_reader = csv.DictReader(file)
             for row in csv_reader:
@@ -41,22 +41,22 @@ def sync_csv_to_db():
 @app.route('/api/metrics')
 def metrics():
     try:
-        sync_csv_to_db()
+        init_db()          # 1. Pastikan tabel selalu ada
+        sync_csv_to_db()   # 2. Injeksi data CSV
+        
         with engine.connect() as conn:
-            # Hitung total timeout dari DB
             total_timeout = conn.execute(text("SELECT count(*) FROM log_transaksi WHERE status='timeout'")).scalar()
             total_sukses = conn.execute(text("SELECT count(*) FROM log_transaksi WHERE status='sukses'")).scalar()
             
-        # LOGIKA ALERTING (Jalur 3)
         alert_status = "AMAN"
-        alert_color = "#4ade80" # Hijau
+        alert_color = "0xFF4ade80" # Hijau format Flutter
         
         if total_timeout >= 3:
-            alert_status = "KRITIS: Lonjakan Timeout Terdeteksi!"
-            alert_color = "#ef4444" # Merah
+            alert_status = "KRITIS: Lonjakan Timeout!"
+            alert_color = "0xFFef4444" # Merah format Flutter
 
         return jsonify({
-            "status": "Sinkronisasi CSV Berhasil",
+            "status": "DB Sync Berhasil",
             "timeout_count": total_timeout,
             "sukses_count": total_sukses,
             "alert": alert_status,
@@ -66,5 +66,5 @@ def metrics():
         return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
-    time.sleep(5) # Tunggu MariaDB siap
+    time.sleep(5)
     app.run(host='0.0.0.0', port=80)
