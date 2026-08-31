@@ -1,0 +1,7 @@
+trx_id,status,waktu
+101,sukses,10:00
+102,timeout,10:01
+103,sukses,10:05
+104,timeout,10:12
+105,timeout,10:15
+106,timeout,10:16
